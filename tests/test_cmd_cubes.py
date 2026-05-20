@@ -13,7 +13,7 @@ def test_cube_list(mocker, command):
     result = runner.invoke(app, ["cube", command])
     assert result.exit_code == 0
     assert isinstance(result.stdout, str)
-    assert result.stdout == "Cube1\nCube2\n"
+    assert result.stdout == "- Cube1\n- Cube2\n"
 
 
 def test_cube_exists(mocker):

@@ -25,8 +25,10 @@ def test_view_exists(mocker, options):
 
 def test_view_list(mocker):
     mocker.patch("tm1cli.commands.view.TM1Service", MockedTM1Service)
-    result = runner.invoke(app, ["view", "list", "example_cube"])
+    result = runner.invoke(app, ["view", "list", "--cube", "example_cube"])
 
     assert result.exit_code == 0
     assert isinstance(result.stdout, str)
-    assert result.stdout == "View1\nView2\nView3\n"
+    assert "cube: example_cube" in result.stdout
+    assert "name: View1" in result.stdout
+    assert "type: public" in result.stdout

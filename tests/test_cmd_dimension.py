@@ -13,7 +13,7 @@ def test_dimension_list(mocker, command):
     result = runner.invoke(app, ["dimension", command])
     assert result.exit_code == 0
     assert isinstance(result.stdout, str)
-    assert result.stdout == "Dimension1\nDimension2\nDimension3\n"
+    assert result.stdout == "- Dimension1\n- Dimension2\n- Dimension3\n"
 
 
 def test_dimension_exists(mocker):

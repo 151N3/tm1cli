@@ -1,10 +1,11 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 import typer
 from rich import print  # pylint: disable=redefined-builtin
 from TM1py.Services import TM1Service
 
 from tm1cli.utils.cli_param import DATABASE_OPTION, INTERVAL_OPTION, WATCH_OPTION
+from tm1cli.utils.list_utils import OutputFormat, apply_filter, apply_paging, render_output
 from tm1cli.utils.various import resolve_database
 from tm1cli.utils.watch import watch_option
 
@@ -20,18 +21,23 @@ def list_dimension(
         bool,
         typer.Option(
             "-s",
-            "--skip-control-cubes",
-            help="Flag for not printing control cubes.",
+            "--skip-control-dims",
+            help="Exclude control dimensions (names starting with '}').",
         ),
     ] = False,
+    filter: Annotated[Optional[str], typer.Option("--filter", "-f", help="Regex/substring filter (case-insensitive).")] = None,
+    output: Annotated[OutputFormat, typer.Option("--output", "-o", help="Output format: yaml (default) or json.")] = "yaml",
+    limit: Annotated[Optional[int], typer.Option("--limit", help="Maximum number of results to return.")] = None,
+    offset: Annotated[int, typer.Option("--offset", help="Number of results to skip (for paging).", min=0)] = 0,
 ):
     """
     List dimensions
     """
-
     with TM1Service(**resolve_database(ctx, database)) as tm1:
-        for dim in tm1.dimensions.get_all_names(skip_control_dims):
-            print(dim)
+        names = tm1.dimensions.get_all_names(skip_control_dims=skip_control_dims)
+    names = apply_filter(names, filter)
+    result = apply_paging(names, limit, offset)
+    typer.echo(render_output(result, output))
 
 
 @app.command()

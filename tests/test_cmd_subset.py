@@ -10,10 +10,12 @@ runner = CliRunner()
 @pytest.mark.parametrize("command", ["list", "ls"])
 def test_subset_list(mocker, command):
     mocker.patch("tm1cli.commands.subset.TM1Service", MockedTM1Service)
-    result = runner.invoke(app, ["subset", command, "Dimension1"])
+    result = runner.invoke(app, ["subset", command, "--dimension", "Dimension1"])
     assert result.exit_code == 0
     assert isinstance(result.stdout, str)
-    assert result.stdout == "Subset1\nSubset2\nSubset3\n"
+    assert "dimension: Dimension1" in result.stdout
+    assert "name: Subset1" in result.stdout
+    assert "type: public" in result.stdout
 
 
 def test_subset_exists(mocker):

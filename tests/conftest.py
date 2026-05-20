@@ -4,7 +4,7 @@ from TM1py import Process
 class MockedCubeService:
     cubes = ["Cube1", "Cube2"]
 
-    def get_all_names(self, cube_name: str):
+    def get_all_names(self, skip_control_cubes: bool = False):
         return self.cubes
 
     def exists(self, cube_name: str):
@@ -14,7 +14,7 @@ class MockedCubeService:
 class MockedViewService:
 
     def get_all_names(self, cube_name: str):
-        return ["View1", "View2", "View3"]
+        return ([], ["View1", "View2", "View3"])
 
     def exists(self, cube_name: str, view_name: str, private: bool):
         if "not" in view_name.lower():
@@ -35,7 +35,7 @@ class MockedDimensionService:
 
 
 class MockedSubsetService:
-    def get_all_names(self, dimension_name: str):
+    def get_all_names(self, dimension_name: str, hierarchy_name: str = None, private: bool = False):
         return ["Subset1", "Subset2", "Subset3"]
 
     def exists(self, dimension_name: str, subset_name: str, private: bool):
@@ -46,6 +46,11 @@ class MockedSubsetService:
 
 
 class MockedProcessService:
+    processes = ["Process1", "Process2"]
+
+    def get_all_names(self, skip_control_processes: bool = False):
+        return self.processes
+
     def exists(self, process_name: str):
         return False if "not" in process_name else True
 

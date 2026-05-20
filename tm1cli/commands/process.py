@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from typing import Annotated, Optional
 
 import typer
 from rich import print  # pylint: disable=redefined-builtin
@@ -8,6 +9,7 @@ from TM1py.Services import TM1Service
 from typing_extensions import Annotated
 
 from tm1cli.utils.cli_param import DATABASE_OPTION, INTERVAL_OPTION, WATCH_OPTION
+from tm1cli.utils.list_utils import OutputFormat, apply_filter, apply_paging, render_output
 from tm1cli.utils.tm1yaml import dump_process, load_process
 from tm1cli.utils.various import print_error_and_exit, resolve_database
 from tm1cli.utils.watch import watch_option
@@ -28,14 +30,27 @@ def _get_process(name: str, database_config: dict) -> Process:
 def list_process(
     ctx: typer.Context,
     database: Annotated[str, DATABASE_OPTION] = None,
+    skip_control_tis: Annotated[
+        bool,
+        typer.Option(
+            "-s",
+            "--skip-control-tis",
+            help="Exclude control TI processes (names starting with '}').",
+        ),
+    ] = False,
+    filter: Annotated[Optional[str], typer.Option("--filter", "-f", help="Regex/substring filter (case-insensitive).")] = None,
+    output: Annotated[OutputFormat, typer.Option("--output", "-o", help="Output format: yaml (default) or json.")] = "yaml",
+    limit: Annotated[Optional[int], typer.Option("--limit", help="Maximum number of results to return.")] = None,
+    offset: Annotated[int, typer.Option("--offset", help="Number of results to skip (for paging).", min=0)] = 0,
 ):
     """
     List processes
     """
-
     with TM1Service(**resolve_database(ctx, database)) as tm1:
-        for process in tm1.processes.get_all_names():
-            print(process)
+        names = tm1.processes.get_all_names(skip_control_processes=skip_control_tis)
+    names = apply_filter(names, filter)
+    result = apply_paging(names, limit, offset)
+    typer.echo(render_output(result, output))
 
 
 @app.command()
